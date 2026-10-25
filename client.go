@@ -320,7 +320,7 @@ func (c *Client) SearchActivities(ctx context.Context, key string, start, limit 
 
 // Activity trả JSON tóm tắt/chi tiết của một buổi.
 func (c *Client) Activity(ctx context.Context, key, activityID string) ([]byte, error) {
-	if !validActivityID(activityID) {
+	if !ValidActivityID(activityID) {
 		return nil, fmt.Errorf("id buổi tập Garmin không hợp lệ")
 	}
 
@@ -329,7 +329,7 @@ func (c *Client) Activity(ctx context.Context, key, activityID string) ([]byte, 
 
 // DownloadActivity tải file gốc của buổi tập: một ZIP chứa file .fit.
 func (c *Client) DownloadActivity(ctx context.Context, key, activityID string) ([]byte, error) {
-	if !validActivityID(activityID) {
+	if !ValidActivityID(activityID) {
 		return nil, fmt.Errorf("id buổi tập Garmin không hợp lệ")
 	}
 	body, err := c.do(ctx, key, downloadPath+activityID, nil, "application/zip, application/x-zip-compressed, application/octet-stream")
@@ -343,8 +343,8 @@ func (c *Client) DownloadActivity(ctx context.Context, key, activityID string) (
 	return body, nil
 }
 
-// validActivityID chỉ nhận số nguyên dương: id đi thẳng vào đường dẫn, không được chứa "../".
-func validActivityID(id string) bool {
+// ValidActivityID chỉ nhận số nguyên dương: id đi thẳng vào đường dẫn, không được chứa "../".
+func ValidActivityID(id string) bool {
 	if id == "" || len(id) > 20 {
 		return false
 	}
@@ -355,4 +355,10 @@ func validActivityID(id string) bool {
 	}
 
 	return id != "0" && !strings.HasPrefix(id, "0")
+}
+
+// Settings đọc hồ sơ cài đặt của chủ key — một lời gọi đọc nhẹ để biết key dùng được thật
+// (đổi được token chưa chắc đã đọc được dữ liệu).
+func (c *Client) Settings(ctx context.Context, key string) ([]byte, error) {
+	return c.do(ctx, key, "/userprofile-service/userprofile/settings", nil, "application/json")
 }
